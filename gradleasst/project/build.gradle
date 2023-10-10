@@ -1,0 +1,102 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+java {
+    sourceCompatibility = JavaVersion.toVersion(11)
+    targetCompatibility = JavaVersion.toVersion(11)
+}
+
+repositories {
+    mavenCentral()
+}
+
+application { 
+    mainClass = 'edu.odu.cs.Highway'  
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.7.0'
+    testImplementation 'org.hamcrest:hamcrest-library:2.2'
+}
+
+test {
+    ignoreFailures = true
+    useJUnitPlatform()
+}
+
+task copyDocs(type: Copy, dependsOn: 'javadoc') {
+    from(file('build/docs'))
+    into(file('build/reports'))
+}
+
+check.dependsOn(copyDocs) 
+
+task reports(type: Copy, dependsOn: ['build']) {
+    from 'src/main/html'
+    into 'build/reports'
+}
+
+task gstatus (type: Exec) {
+    workingDir = '.'
+    commandLine = ['git', 'status']
+}
+
+def pagesDir = file("${project.rootDir}/project/build/website-temp").absolutePath
+
+task clearPages(type: Delete) {
+    delete pagesDir
+}
+
+task workTree(dependsOn: ['clearPages']) { 
+    doLast {
+        exec {
+            workingDir = '.'
+            commandLine = ['git', 'worktree', 'add', '-f', pagesDir, 'gh-pages']
+        }
+        exec {
+            workingDir = pagesDir
+            commandLine = ['git', 'checkout', 'gh-pages']
+        }
+        exec {
+            workingDir = pagesDir
+            commandLine = ['git', 'pull']
+        }
+    }
+}
+
+task copyReports (type: Copy, dependsOn: ['reports', 'workTree']) {
+    from 'build/reports'
+    into pagesDir
+}
+
+task commitWebsite (dependsOn: 'copyReports') {
+    doLast {
+        Date now = new Date()
+
+        exec {
+            workingDir = pagesDir
+            commandLine = ['git', 'add', pagesDir]
+            ignoreExitValue = true
+        }
+        exec {
+            workingDir = pagesDir
+            commandLine = ['git', 'commit', '-m', 'Updating webpages at ' + now.toString()]
+            ignoreExitValue = true
+        }
+    }
+}
+
+task pushWebsite (type: Exec, dependsOn: 'commitWebsite') {
+    workingDir = pagesDir
+    commandLine = ['git', 'push']
+    ignoreExitValue = true
+}
+
+task deployReports (type: Delete, dependsOn: 'pushWebsite') {
+    group = "Reporting"
+    description  'Commit and push website changes to GitHub'
+    delete pagesDir
+}
+
