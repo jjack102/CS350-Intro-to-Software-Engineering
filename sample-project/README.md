@@ -1,3 +1,5 @@
+# Version Control - Merging branches and Resolving conflicts in Git
+
 # Highway
 
 A small town lies along a portion of a long, scenic highway. (Think "Blue Ridge Mountain Parkway"). The town benefits significantly from the tourists who pass through along this road and who frequently stop to eat at the local restaurants, make purchases at the local stores, etc.
