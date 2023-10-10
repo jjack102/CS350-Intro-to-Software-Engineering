@@ -1,4 +1,4 @@
-# Version Control - Merging branches and Resolving conflicts in Git
+# Version Control - Merging Branches and Resolving Conflicts in Git
 
 # Highway
 
